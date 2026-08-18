@@ -1,0 +1,1 @@
+# Ekip_GorevYonetim
