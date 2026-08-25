@@ -1,0 +1,72 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TeamTaskManager.Api.Contracts;
+using TeamTaskManager.Application.Authentication;
+
+namespace TeamTaskManager.Api.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public sealed class AuthController(IAuthenticationService authenticationService) : ControllerBase
+{
+    [AllowAnonymous]
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await authenticationService.LoginAsync(request, cancellationToken);
+        if (result is null)
+        {
+            return Unauthorized(ApiResponse<LoginResponse>.Fail("E-posta veya parola hatalı."));
+        }
+
+        return Ok(ApiResponse<LoginResponse>.Ok(result, "Giriş başarılı."));
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(ApiResponse<AuthenticatedUser>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<AuthenticatedUser>>> Me(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized(ApiResponse<AuthenticatedUser>.Fail("Geçerli kullanıcı bilgisi bulunamadı."));
+        }
+
+        var user = await authenticationService.GetUserAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return Unauthorized(ApiResponse<AuthenticatedUser>.Fail("Kullanıcı bulunamadı veya pasif durumda."));
+        }
+
+        return Ok(ApiResponse<AuthenticatedUser>.Ok(user, "Oturum kullanıcısı getirildi."));
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized(ApiResponse<object>.Fail("Geçerli kullanıcı bilgisi bulunamadı."));
+        }
+
+        var errors = await authenticationService.ChangePasswordAsync(userId, request, cancellationToken);
+        if (errors.Count > 0)
+        {
+            return BadRequest(ApiResponse<object>.Fail("Parola değiştirilemedi.", errors.ToArray()));
+        }
+
+        return NoContent();
+    }
+}
