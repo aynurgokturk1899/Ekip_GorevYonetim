@@ -1,0 +1,8 @@
+.modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 20px; background: #0d18368c; }
+.modal { width: min(100%, 500px); padding: 28px; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px #0a173e4d; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; }
+.modal h2 { font-size: 21px; }
+.close-button { padding: 0; width: 32px; height: 32px; background: #f0f3f8; color: #536179; font-size: 24px; line-height: 1; }
+textarea { resize: vertical; padding: 13px 14px; border: 1px solid #dbe1ec; border-radius: 10px; outline: none; }
+textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #2563eb1c; }
+select { padding: 13px 14px; border: 1px solid #dbe1ec; border-radius: 10px; color: #18243b; background: #fff; }

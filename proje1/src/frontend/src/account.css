@@ -1,0 +1,10 @@
+.account-grid { display: grid; grid-template-columns: minmax(230px, .8fr) minmax(360px, 1.2fr); gap: 24px; }
+.account-summary { display: grid; align-content: start; justify-items: center; text-align: center; padding: 34px; }
+.account-summary h2 { margin-top: 16px; font-size: 20px; }
+.account-summary p { color: #71809a; margin: 7px 0 18px; }
+.avatar { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 22px; background: linear-gradient(135deg, #2563eb, #72a0fb); color: #fff; font: 800 25px Manrope, sans-serif; }
+.role-tag { padding: 7px 11px; border-radius: 999px; background: #edf3ff; color: #2563eb; font-size: 13px; font-weight: 700; }
+.password-panel { padding: 30px; }
+.password-panel h2 { font-size: 20px; }
+.password-panel .muted { margin: 8px 0 0; }
+@media (max-width: 750px) { .account-grid { grid-template-columns: 1fr; } }

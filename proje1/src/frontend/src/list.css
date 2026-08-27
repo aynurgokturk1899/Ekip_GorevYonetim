@@ -1,0 +1,28 @@
+.list-panel { display: grid; gap: 2px; padding: 10px 24px; }
+.list-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid #edf0f5; }
+.list-row:last-child { border-bottom: 0; }
+.list-row div { display: grid; gap: 5px; }
+.list-row span { color: #71809a; font-size: 13px; }
+.badge { padding: 6px 10px; border-radius: 999px; color: #2563eb; background: #edf3ff; font-size: 12px; }
+.badge.completed { color: #147a4a; background: #e7f8ef; }
+.status-select { min-width: 132px; padding: 8px 10px; border: 1px solid #dbe1ec; border-radius: 9px; color: #2563eb; background: #f8faff; font-weight: 600; }
+.header-actions { display: flex; gap: 10px; }
+.notification { cursor: pointer; }
+.notification.unread { margin: 0 -10px; padding: 18px 10px; border-radius: 10px; background: #f3f7ff; }
+.task-filter { min-width: 145px; padding: 10px 12px; border: 1px solid #dbe1ec; border-radius: 10px; color: #45536b; background: #fff; }
+.row-actions { display: flex; align-items: center; gap: 8px; }
+.mini-button { padding: 8px 10px; background: #edf3ff; color: #2563eb; font-size: 12px; }
+.comment-list { display: grid; gap: 10px; max-height: 260px; overflow-y: auto; margin: 20px 0; }
+.comment { padding: 12px; border-radius: 10px; background: #f5f8fe; }
+.comment p { margin: 0 0 7px; }
+.comment span { color: #71809a; font-size: 12px; }
+.upload-form { margin-top: 18px; }
+.attachment-list { display: grid; gap: 7px; margin-top: 14px; color: #2563eb; font-size: 13px; }
+.workload-panel { margin-top: 25px; }
+.workload-table { display: grid; }
+.workload-head, .workload-row { display: grid; grid-template-columns: 1fr 130px 130px; gap: 16px; align-items: center; padding: 13px 4px; }
+.workload-head { color: #71809a; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.workload-row { border-top: 1px solid #edf0f5; }
+.workload-row span:first-child { display: grid; gap: 4px; }
+.workload-row small { color: #71809a; }
+@media (max-width: 600px) { .workload-head, .workload-row { grid-template-columns: 1fr 80px 80px; gap: 8px; } }
