@@ -40,7 +40,7 @@ public sealed class TasksController(ITaskManagementService taskManagementService
         return task is null ? NotFound(ApiResponse<TaskItemDto>.Fail("Görev bulunamadı.")) : Ok(ApiResponse<TaskItemDto>.Ok(task, "Görev getirildi."));
     }
 
-    [Authorize(Roles = ApplicationRoles.ProjectManager)]
+    [Authorize(Roles = ApplicationRoles.Admin + "," + ApplicationRoles.ProjectManager)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<TaskItemDto>>> Create([FromBody] CreateTaskRequest request, CancellationToken cancellationToken)
     {

@@ -11,4 +11,7 @@ public sealed class CreateProjectRequest
     public DateOnly StartDate { get; init; }
 
     public DateOnly TargetEndDate { get; init; }
+
+    // Yalnızca Sistem Yöneticisi proje yöneticisini seçebilir.
+    public string? ManagerUserId { get; init; }
 }

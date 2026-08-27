@@ -11,7 +11,15 @@ export async function request(path, options = {}) {
     }
   });
 
-  const body = response.status === 204 ? null : await response.json();
+  const rawBody = response.status === 204 ? '' : await response.text();
+  let body = null;
+  if (rawBody) {
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      throw new Error('Sunucudan beklenmeyen bir cevap alındı. API’nin güncel sürümle çalıştığını kontrol edin.');
+    }
+  }
   if (!response.ok) throw new Error(body?.errors?.[0] ?? body?.message ?? 'İşlem gerçekleştirilemedi.');
   return body?.data;
 }
@@ -24,6 +32,11 @@ export const login = (email, password) => request('/api/auth/login', {
 export const changePassword = (currentPassword, newPassword) => request('/api/auth/change-password', {
   method: 'POST',
   body: JSON.stringify({ currentPassword, newPassword })
+});
+
+export const register = (payload) => request('/api/auth/register', {
+  method: 'POST',
+  body: JSON.stringify(payload)
 });
 
 export async function uploadAttachment(taskId, file) {

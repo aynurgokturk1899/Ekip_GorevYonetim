@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
+    public DbSet<ProjectJoinRequest> ProjectJoinRequests => Set<ProjectJoinRequest>();
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
     public DbSet<TaskComment> TaskComments => Set<TaskComment>();
     public DbSet<TaskAttachment> TaskAttachments => Set<TaskAttachment>();
@@ -80,6 +81,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasIndex(member => new { member.UserId, member.IsActive });
             entity.HasOne(member => member.Project).WithMany(project => project.Members).HasForeignKey(member => member.ProjectId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(member => member.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ProjectJoinRequest>(entity =>
+        {
+            entity.ToTable("ProjectJoinRequests");
+            entity.Property(request => request.UserId).HasMaxLength(450).IsRequired();
+            entity.Property(request => request.ReviewedByUserId).HasMaxLength(450);
+            entity.Property(request => request.Status).HasConversion<byte>();
+            entity.Property(request => request.CreatedDate).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(request => new { request.ProjectId, request.Status });
+            entity.HasIndex(request => new { request.UserId, request.Status });
+            entity.HasOne(request => request.Project).WithMany().HasForeignKey(request => request.ProjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(request => request.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(request => request.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<TaskItem>(entity =>

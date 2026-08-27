@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IProjectManagementService, ProjectManagementService>();
         services.AddScoped<IProjectMemberService, ProjectMemberService>();
+        services.AddScoped<IProjectJoinRequestService, ProjectJoinRequestService>();
         services.AddScoped<ITaskManagementService, TaskManagementService>();
         services.AddScoped<IActivityLogService, ActivityLogService>();
         services.AddScoped<ITaskCommentService, TaskCommentService>();

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TeamTaskManager.Application.Authentication;
+using TeamTaskManager.Application.Projects;
+using TeamTaskManager.Domain.Constants;
 using TeamTaskManager.Domain.Entities;
 
 namespace TeamTaskManager.Infrastructure.Authentication;
@@ -40,6 +42,41 @@ public sealed class AuthenticationService(
 
         var roles = await userManager.GetRolesAsync(user);
         return ToAuthenticatedUser(user, roles);
+    }
+
+    public async Task<ProjectOperationResult<LoginResponse>> RegisterAsync(RegistrationRequest request, CancellationToken cancellationToken = default)
+    {
+        if (await userManager.FindByEmailAsync(request.Email) is not null)
+        {
+            return ProjectOperationResult<LoginResponse>.Failure("Bu e-posta adresiyle daha önce kullanıcı hesabı oluşturulmuş.");
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        };
+        var creationResult = await userManager.CreateAsync(user, request.Password);
+        if (!creationResult.Succeeded)
+        {
+            return ProjectOperationResult<LoginResponse>.Failure(creationResult.Errors.Select(error => error.Description).ToArray());
+        }
+
+        var roleResult = await userManager.AddToRoleAsync(user, ApplicationRoles.TeamMember);
+        if (!roleResult.Succeeded)
+        {
+            await userManager.DeleteAsync(user);
+            return ProjectOperationResult<LoginResponse>.Failure(roleResult.Errors.Select(error => error.Description).ToArray());
+        }
+
+        var roles = await userManager.GetRolesAsync(user);
+        var expiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
+        var authenticatedUser = ToAuthenticatedUser(user, roles);
+        return ProjectOperationResult<LoginResponse>.Success(new LoginResponse(CreateAccessToken(authenticatedUser, expiresAt), expiresAt, authenticatedUser));
     }
 
     public async Task<IReadOnlyCollection<string>> ChangePasswordAsync(

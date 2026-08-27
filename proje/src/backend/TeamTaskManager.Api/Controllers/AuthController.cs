@@ -27,6 +27,16 @@ public sealed class AuthController(IAuthenticationService authenticationService)
         return Ok(ApiResponse<LoginResponse>.Ok(result, "Giriş başarılı."));
     }
 
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> Register([FromBody] RegistrationRequest request, CancellationToken cancellationToken)
+    {
+        var result = await authenticationService.RegisterAsync(request, cancellationToken);
+        return !result.Succeeded || result.Data is null
+            ? BadRequest(ApiResponse<LoginResponse>.Fail("Kayıt oluşturulamadı.", result.Errors.ToArray()))
+            : StatusCode(StatusCodes.Status201Created, ApiResponse<LoginResponse>.Ok(result.Data, "Hesabın oluşturuldu. Projelere katılım isteği gönderebilirsin."));
+    }
+
     [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(typeof(ApiResponse<AuthenticatedUser>), StatusCodes.Status200OK)]

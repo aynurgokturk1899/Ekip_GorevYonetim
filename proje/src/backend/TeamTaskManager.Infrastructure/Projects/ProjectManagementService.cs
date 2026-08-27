@@ -4,6 +4,7 @@ using TeamTaskManager.Application.Projects;
 using TeamTaskManager.Application.Activities;
 using TeamTaskManager.Application.Users;
 using TeamTaskManager.Domain.Entities;
+using TeamTaskManager.Domain.Constants;
 using TeamTaskManager.Domain.Enums;
 using TeamTaskManager.Infrastructure.Persistence;
 
@@ -20,7 +21,15 @@ public sealed class ProjectManagementService(
         var pageSize = Math.Clamp(query.PageSize, 1, 100);
         var projects = dbContext.Projects.AsNoTracking().Where(project => !project.IsArchived);
 
-        if (!access.IsAdmin)
+        if (query.AvailableForJoin)
+        {
+            projects = projects.Where(project =>
+                project.Status != ProjectStatus.Completed &&
+                project.Status != ProjectStatus.Cancelled &&
+                project.ManagerUserId != access.UserId &&
+                !project.Members.Any(member => member.UserId == access.UserId && member.IsActive));
+        }
+        else if (!access.IsAdmin)
         {
             projects = projects.Where(project =>
                 project.ManagerUserId == access.UserId ||
@@ -66,7 +75,10 @@ public sealed class ProjectManagementService(
     public async Task<ProjectOperationResult<ProjectDto>> CreateAsync(ProjectAccessContext access, CreateProjectRequest request, CancellationToken cancellationToken = default)
     {
         var errors = ValidateRequest(request.Name, request.Description, request.StartDate, request.TargetEndDate);
-        var manager = await userManager.FindByIdAsync(access.UserId);
+        var managerUserId = access.IsAdmin && !string.IsNullOrWhiteSpace(request.ManagerUserId)
+            ? request.ManagerUserId
+            : access.UserId;
+        var manager = await userManager.FindByIdAsync(managerUserId);
         if (manager is null || !manager.IsActive)
         {
             errors.Add("Aktif proje yöneticisi bulunamadı.");
@@ -77,8 +89,17 @@ public sealed class ProjectManagementService(
             return ProjectOperationResult<ProjectDto>.Failure(errors.ToArray());
         }
 
+        if (access.IsAdmin && !await userManager.IsInRoleAsync(manager!, ApplicationRoles.ProjectManager))
+        {
+            var roleResult = await userManager.AddToRoleAsync(manager!, ApplicationRoles.ProjectManager);
+            if (!roleResult.Succeeded)
+            {
+                return ProjectOperationResult<ProjectDto>.Failure(roleResult.Errors.Select(error => error.Description).ToArray());
+            }
+        }
+
         var duplicateExists = await dbContext.Projects.AnyAsync(
-            project => project.ManagerUserId == access.UserId && project.Name == request.Name.Trim() && !project.IsArchived,
+            project => project.ManagerUserId == managerUserId && project.Name == request.Name.Trim() && !project.IsArchived,
             cancellationToken);
         if (duplicateExists)
         {
@@ -92,12 +113,12 @@ public sealed class ProjectManagementService(
             StartDate = request.StartDate,
             TargetEndDate = request.TargetEndDate,
             Status = ProjectStatus.Planned,
-            ManagerUserId = access.UserId,
+            ManagerUserId = managerUserId,
             Members =
             [
                 new ProjectMember
                 {
-                    UserId = access.UserId,
+                    UserId = managerUserId,
                     MemberRole = ProjectMemberRole.Manager,
                     IsActive = true
                 }

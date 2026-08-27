@@ -11,4 +11,6 @@ public sealed class ProjectListQuery
     public string? Search { get; init; }
 
     public ProjectStatus? Status { get; init; }
+
+    public bool AvailableForJoin { get; init; }
 }

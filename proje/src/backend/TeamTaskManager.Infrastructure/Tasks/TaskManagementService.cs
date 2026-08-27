@@ -116,6 +116,11 @@ public sealed class TaskManagementService(
             return TaskOperationResult<TaskItemDto>.Failure("Geçersiz görev durumu.");
         }
 
+        if (task.Status == request.Status)
+        {
+            return TaskOperationResult<TaskItemDto>.Success(ToDto(task));
+        }
+
         if (!IsTransitionAllowed(task.Status, request.Status))
         {
             return TaskOperationResult<TaskItemDto>.Failure("Bu görev durumu geçişine izin verilmiyor.");
